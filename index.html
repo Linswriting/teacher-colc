@@ -11,13 +11,13 @@
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #f8fafc;
             -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
         }
         .glass-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        /* 週次 Checkbox 樣式：白底藍框 */
         .week-checkbox:checked + label {
             background-color: #ffffff;
             color: #2563eb; 
@@ -25,10 +25,6 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
         }
-        .week-checkbox:checked + label .week-date {
-            color: #60a5fa;
-        }
-
         input[type="number"] {
             appearance: textfield;
             -moz-appearance: textfield;
@@ -38,42 +34,46 @@
             -webkit-appearance: none;
             margin: 0;
         }
+        /* 避免日期選擇器在部分手機瀏覽器縮放 */
+        input[type="date"] {
+            font-size: 16px;
+        }
     </style>
 </head>
 <body class="antialiased text-slate-900 pb-12">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10">
         
-        <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
                 教師兼代課鐘點費計算器
             </h1>
         </div>
 
-        <!-- 佈局容器 -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:items-start">
             
-            <!-- 左側區域：設定區 -->
+            <!-- 左側設定區 -->
             <div class="lg:col-span-7 space-y-6">
                 
-                <!-- 0. 學期基準 -->
+                <!-- 學期基準 - 修正框線貼邊問題 -->
                 <div class="glass-card p-5 sm:p-6 rounded-2xl shadow-sm border-l-4 border-orange-500">
                     <h3 class="flex items-center font-bold text-slate-800 mb-4 text-base sm:text-lg">
                         <span class="w-8 h-8 flex items-center justify-center bg-orange-100 text-orange-600 rounded-lg mr-3">📅</span>
                         學期時間基準
                     </h3>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <div class="flex-1">
-                            <label class="block text-xs font-bold text-slate-500 mb-1 ml-1 uppercase">第一週前的週日</label>
-                            <input type="date" id="semesterStartDate" onchange="renderWeekCheckboxes()" class="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+                    <div class="flex flex-col sm:flex-row gap-4 px-1">
+                        <div class="w-full sm:flex-1">
+                            <label class="block text-[11px] font-black text-slate-400 mb-1.5 ml-1 uppercase tracking-wider">第一週前的週日</label>
+                            <input type="date" id="semesterStartDate" onchange="renderWeekCheckboxes()" class="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all">
                         </div>
-                        <button onclick="autoSetSemester()" class="h-12 px-6 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all shadow-md active:scale-95 text-sm sm:mt-5">
-                            建議日期
-                        </button>
+                        <div class="w-full sm:w-auto sm:mt-6">
+                            <button onclick="autoSetSemester()" class="w-full h-12 px-6 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all shadow-md active:scale-95 text-sm whitespace-nowrap">
+                                建議日期
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 1. 職務設定 -->
+                <!-- 職務與節數設定 -->
                 <div class="glass-card p-5 sm:p-6 rounded-2xl shadow-sm border-l-4 border-blue-500">
                     <h3 class="flex items-center font-bold text-slate-800 mb-6 text-base sm:text-lg">
                         <span class="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-600 rounded-lg mr-3">👔</span>
@@ -81,18 +81,18 @@
                     </h3>
                     
                     <div class="space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-3 border-b border-slate-100">
+                        <div class="flex items-center justify-between gap-2 py-3 border-b border-slate-100 px-1">
                             <div>
                                 <p class="font-bold text-slate-700 text-sm">全校總班級數</p>
                                 <p id="scaleLabel" class="text-[10px] text-blue-500 font-medium italic">判定中...</p>
                             </div>
                             <div class="flex items-center">
-                                <input type="number" id="classCount" value="25" min="1" oninput="handleClassCountChange()" class="w-24 h-10 text-center bg-blue-50 text-blue-700 font-black rounded-lg border-none focus:ring-2 focus:ring-blue-400">
-                                <span class="ml-2 text-sm text-slate-400">班</span>
+                                <input type="number" id="classCount" value="25" min="1" oninput="handleClassCountChange()" class="w-20 h-10 text-center bg-blue-50 text-blue-700 font-black rounded-lg border-none focus:ring-2 focus:ring-blue-400">
+                                <span class="ml-2 text-sm text-slate-400 font-bold">班</span>
                             </div>
                         </div>
 
-                        <div class="space-y-1">
+                        <div class="space-y-1 px-1">
                             <label class="text-xs font-bold text-slate-400 ml-1">教師基本身分</label>
                             <select id="subject" onchange="updateWeekCalculations()" class="w-full h-11 px-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium">
                                 <option value="16">一般教師 (基本 16 節)</option>
@@ -100,7 +100,7 @@
                             </select>
                         </div>
 
-                        <div class="space-y-1">
+                        <div class="space-y-1 px-1">
                             <label class="text-xs font-bold text-slate-400 ml-1">行政職務類型</label>
                             <select id="adminType" onchange="handleAdminTypeChange()" class="w-full h-11 px-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium">
                                 <option value="none">無行政職務</option>
@@ -114,7 +114,7 @@
                             </select>
                         </div>
 
-                        <div id="assistantConfig" class="hidden bg-amber-50 p-4 rounded-xl border border-amber-100">
+                        <div id="assistantConfig" class="hidden bg-amber-50 p-4 rounded-xl border border-amber-100 mx-1">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-bold text-amber-700">協助行政減授節數</span>
                                 <div class="flex items-center">
@@ -124,7 +124,7 @@
                             </div>
                         </div>
 
-                        <div id="deptHeadConfig" class="hidden bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                        <div id="deptHeadConfig" class="hidden bg-indigo-50 p-4 rounded-xl border border-indigo-100 mx-1">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-bold text-indigo-700">該科/學程班級數</span>
                                 <div class="flex items-center">
@@ -134,51 +134,52 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between py-3 bg-slate-50 px-4 rounded-xl">
-                            <span class="text-xs font-black text-slate-500">減授後基本節數</span>
+                        <div class="flex items-center justify-between py-3 bg-slate-50 px-4 rounded-xl mx-1">
+                            <span class="text-xs font-black text-slate-500 uppercase">減授後基本節數</span>
                             <div class="flex items-baseline">
                                 <span id="legalBaseDisplay" class="text-2xl font-black text-blue-600">--</span>
                                 <span class="ml-1 text-[10px] text-slate-400">節 / 週</span>
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between p-3 border-2 border-dashed border-slate-100 rounded-xl">
+                        <div class="flex items-center justify-between p-3 border-2 border-dashed border-slate-100 rounded-xl mx-1">
                             <label for="isTutor" class="text-sm font-bold text-slate-700 cursor-pointer">兼任班導師 (減 4 節)</label>
                             <input type="checkbox" id="isTutor" onchange="updateWeekCalculations()" class="w-6 h-6 text-blue-600 rounded-lg cursor-pointer">
                         </div>
 
-                        <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-bold text-slate-700">每週固定超鐘點</span>
-                                <span class="text-[10px] text-slate-400 font-medium">固定排課部分</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <input type="number" id="weeklyExtra" value="0" min="0" oninput="updateWeekCalculations()" class="flex-1 h-12 bg-slate-50 rounded-xl border border-slate-100 text-center font-black text-xl text-blue-600 focus:ring-2 focus:ring-blue-400 outline-none">
-                                <span class="font-bold text-slate-400 text-sm">節 / 週</span>
+                        <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm mx-1">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <p class="text-sm font-bold text-slate-700 leading-tight">每週固定超鐘點</p>
+                                    <p class="text-[10px] text-slate-400 font-medium tracking-tight">固定排課部分</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="weeklyExtra" value="0" min="0" oninput="updateWeekCalculations()" class="w-20 h-12 bg-slate-50 rounded-xl border border-slate-100 text-center font-black text-xl text-blue-600 focus:ring-2 focus:ring-blue-400 outline-none">
+                                    <span class="font-bold text-slate-400 text-xs">節/週</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 2. 週次勾選 -->
+                <!-- 教學週次 -->
                 <div class="glass-card p-5 sm:p-6 rounded-2xl shadow-sm border-l-4 border-indigo-500">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3 px-1">
                         <h3 class="font-bold text-slate-800 text-base sm:text-lg flex items-center">
                             <span class="w-8 h-8 flex items-center justify-center bg-indigo-100 text-indigo-600 rounded-lg mr-3">🗓️</span>
                             教學週次
                         </h3>
                         <div class="flex items-center gap-2">
-                            <span id="weekCountBadge" class="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-black">0 週</span>
-                            <select id="monthSelector" onchange="renderWeekCheckboxes()" class="bg-slate-100 border-none rounded-xl text-xs font-black px-4 h-10 outline-none focus:ring-2 focus:ring-indigo-400"></select>
+                            <span id="weekCountBadge" class="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-black shrink-0">0 週</span>
+                            <select id="monthSelector" onchange="renderWeekCheckboxes()" class="bg-slate-100 border-none rounded-xl text-xs font-black px-4 h-10 outline-none focus:ring-2 focus:ring-indigo-400 min-w-[120px]"></select>
                         </div>
                     </div>
 
-                    <div id="weekContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+                    <div id="weekContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 px-1">
                         <!-- 動態生成 -->
                     </div>
 
-                    <div class="space-y-4">
-                        <!-- 拆分基本與超時 -->
+                    <div class="space-y-4 px-1">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="p-4 bg-slate-100 rounded-2xl border border-slate-200">
                                 <label class="block text-[10px] font-black text-slate-400 mb-1 uppercase tracking-wider">本月基本授課節數</label>
@@ -218,7 +219,7 @@
                 </button>
             </div>
 
-            <!-- 右側區域：結果區 -->
+            <!-- 右側結果區 -->
             <div class="lg:col-span-5 lg:sticky lg:top-6">
                 <div class="glass-card rounded-3xl shadow-2xl border-t-[10px] border-blue-600 overflow-hidden bg-white">
                     <div class="p-6 sm:p-8">
@@ -231,24 +232,24 @@
 
                         <div id="resultContent" class="hidden space-y-6">
                             <div class="space-y-4">
-                                <div class="flex justify-between items-center text-sm">
+                                <div class="flex justify-between items-center text-sm px-1">
                                     <span class="text-slate-500 font-bold">基本授課門檻</span>
                                     <span id="resBaseTotal" class="font-black text-slate-700">--</span>
                                 </div>
-                                <div class="flex justify-between items-center text-sm">
+                                <div class="flex justify-between items-center text-sm px-1">
                                     <span class="text-blue-500 font-bold">本月超鐘點結算</span>
                                     <span id="resExtraHours" class="font-black text-blue-600">--</span>
                                 </div>
-                                <div class="flex justify-between items-center text-sm">
+                                <div class="flex justify-between items-center text-sm px-1">
                                     <span class="text-green-600 font-bold">代課鐘點所得</span>
                                     <span id="resSupportHours" class="font-black text-green-600">--</span>
                                 </div>
-                                <div class="flex justify-between items-center text-sm">
+                                <div class="flex justify-between items-center text-sm px-1">
                                     <span class="text-red-500 font-bold">學校支應 (扣除)</span>
                                     <span id="resSchoolHours" class="font-black text-red-600">--</span>
                                 </div>
-                                <div class="flex justify-between items-center text-sm">
-                                    <span class="text-slate-400 font-bold">自行支應 (不列入計算)</span>
+                                <div class="flex justify-between items-center text-sm px-1 border-b border-slate-50 pb-2">
+                                    <span class="text-slate-400 font-bold">自行支應 (不計薪)</span>
                                     <span id="resSelfHours" class="font-black text-slate-400">--</span>
                                 </div>
                                 
@@ -258,11 +259,12 @@
                                 </div>
                             </div>
 
-                            <div class="bg-white p-8 rounded-[2rem] text-center border-2 border-blue-600 shadow-xl">
+                            <div class="bg-white p-8 rounded-[2.5rem] text-center border-2 border-blue-600 shadow-xl relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
                                 <p class="text-[10px] text-blue-500 font-black mb-2 tracking-widest uppercase">Estimate Monthly Income</p>
                                 <p id="resTotalIncome" class="text-5xl font-black text-blue-700 tracking-tighter">$0</p>
                                 <div class="w-12 h-1 bg-blue-100 mx-auto mt-4 rounded-full"></div>
-                                <p class="text-[10px] text-slate-400 mt-4">依現行高中職單價 $505 計算</p>
+                                <p class="text-[10px] text-slate-400 mt-4 font-medium italic">依現行單價 $505 計算</p>
                             </div>
                         </div>
                     </div>
@@ -338,7 +340,6 @@
             let checkedWeeks = 0;
             document.querySelectorAll('.week-checkbox').forEach(cb => { if (cb.checked) checkedWeeks++; });
             
-            // 更新拆分後的顯示欄位
             const monthBaseTotal = finalBase * checkedWeeks;
             const monthExtraTotal = weeklyExtra * checkedWeeks;
             
@@ -392,7 +393,7 @@
                         div.innerHTML = `
                             <input type="checkbox" id="w${weekNum}" checked class="hidden week-checkbox" onchange="updateWeekCalculations()">
                             <label for="w${weekNum}" class="flex flex-col items-center justify-center p-3 border border-slate-200 rounded-xl cursor-pointer bg-white shadow-sm h-full text-center">
-                                <span class="text-sm font-black text-slate-800">第 ${weekNum} 週</span>
+                                <span class="text-[13px] font-black text-slate-800">第 ${weekNum} 週</span>
                                 <div class="text-[9px] text-slate-400 mt-1 week-date">${sun.getMonth()+1}/${sun.getDate()}-${sat.getDate()}</div>
                             </label>
                         `;
@@ -415,16 +416,14 @@
             document.querySelectorAll('.week-checkbox').forEach(cb => { if (cb.checked) checkedWeeks++; });
             
             const monthBaseRequired = finalBasePerWeek * checkedWeeks;
-            const extraHours = weeklyExtra * checkedWeeks;
-            
-            // 合計應領節數 = 固定超時 + 協助代課 - 學校支應代課
-            const finalNetHours = extraHours + supportHours - schoolPayHours;
+            const extraHoursTotal = weeklyExtra * checkedWeeks;
+            const finalNetHours = extraHoursTotal + supportHours - schoolPayHours;
 
             document.getElementById('resultPlaceholder').classList.add('hidden');
             document.getElementById('resultContent').classList.remove('hidden');
             
             document.getElementById('resBaseTotal').innerText = `${monthBaseRequired} 節`;
-            document.getElementById('resExtraHours').innerText = `${extraHours} 節`;
+            document.getElementById('resExtraHours').innerText = `${extraHoursTotal} 節`;
             document.getElementById('resSupportHours').innerText = `+${supportHours} 節`;
             document.getElementById('resSchoolHours').innerText = `-${schoolPayHours} 節`;
             document.getElementById('resSelfHours').innerText = `${selfPayHours} 節`;
