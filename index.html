@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教師兼代課鐘點費計算神器</title>
+    <title>教師兼代課鐘點費計算器 - 完整法規版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
@@ -17,210 +17,245 @@
             border-radius: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .btn-confirm {
-            transition: transform 0.1s, background-color 0.2s;
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f3f4f6;
         }
-        .btn-confirm:active {
-            transform: scale(0.98);
+        .settings-row:last-child {
+            border-bottom: none;
         }
-        /* 自定義捲軸樣式 */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        .week-checkbox:checked + label {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            color: #1d4ed8;
+            box-shadow: inset 0 0 0 2px #3b82f6;
         }
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <div class="max-w-5xl mx-auto">
-        <div class="text-center mb-10">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-blue-800 mb-2">教師兼代課鐘點費計算神器</h1>
-            <p class="text-gray-600 text-sm">適用對象：高中職全體教師 (含專任、班導、行政職)</p>
+            <p class="text-gray-600 text-sm">📅 支援「協助行政」自定義減授與「請假支應分類」功能</p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-            <!-- Left: Settings Form -->
-            <div class="lg:col-span-3 space-y-6">
-                <!-- 1. 基礎身分與職務 -->
-                <div class="card p-6 border-l-4 border-blue-400">
-                    <h3 class="font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
-                        <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">1</span>
-                        基礎身分與職務
+        <div class="grid grid-cols-1 lg:grid-cols-6 gap-8 items-start">
+            <div class="lg:col-span-4 space-y-6">
+                
+                <!-- 0. 學期基準設定 -->
+                <div class="card p-6 border-l-4 border-orange-400 bg-orange-50/30">
+                    <h3 class="font-bold text-gray-800 mb-4 flex items-center text-lg">
+                        <span class="bg-orange-100 text-orange-600 w-7 h-7 rounded-full flex items-center justify-center text-sm mr-2">⚙️</span>
+                        學期時間基準設定
                     </h3>
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-gray-700 font-medium mb-1">教授學科</label>
-                                <select id="subject" onchange="autoUpdateTotalHours()" class="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 outline-none transition-all">
-                                    <option value="16">一般學科 (基本 16 節)</option>
-                                    <option value="14">國文科 (基本 14 節)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-blue-700 font-bold mb-1">每週超鐘點節數</label>
-                                <input type="number" id="weeklyExtra" value="0" min="0" step="1" oninput="autoUpdateTotalHours()" class="w-full p-2.5 border border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-400 outline-none bg-blue-50">
-                                <p class="text-[10px] text-blue-500 mt-1 italic">指您本學期課表「每週」固定的超鐘點</p>
-                            </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label class="block text-gray-700 font-bold mb-1 text-sm">該學期第 1 週之前的週日</label>
+                            <input type="date" id="semesterStartDate" onchange="renderWeekCheckboxes()" class="w-full p-2.5 border border-orange-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-400 text-sm h-[46px]">
                         </div>
-
-                        <div class="flex items-center space-x-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                            <input type="checkbox" id="isTutor" onchange="autoUpdateTotalHours()" class="w-5 h-5 text-blue-600 rounded">
-                            <label for="isTutor" class="text-blue-800 font-bold">兼任班導師 (減授 4 節)</label>
-                        </div>
-
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">兼任行政職務 (教師兼任之減授節數)</label>
-                            <select id="adminReduction" onchange="handleAdminChange()" class="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 outline-none transition-all">
-                                <option value="0">無行政職 (減 0 節)</option>
-                                <option value="2">協助行政教師 (減 2 節)</option>
-                                <option value="4">科主任 / 學科召集人 (減 4 節)</option>
-                                <option value="7">組長 (設備 / 衛保 / 註冊 / 資訊等，取 7 節)</option>
-                                <option value="11">組長 (教學 / 生教 / 體育 / 特教 / 實習等，取 11 節)</option>
-                                <option value="13">處室主任 / 一級主管 (取 13 節)</option>
-                                <option value="custom">-- 手動輸入減授節數 --</option>
-                            </select>
-                        </div>
-                        <div id="customReductionBox" class="hidden p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300 animate-fade-in">
-                            <label class="block text-gray-600 text-sm font-bold mb-1">請輸入學校核定減授節數：</label>
-                            <input type="number" id="customRedValue" value="0" min="0" max="16" oninput="autoUpdateTotalHours()" class="w-full p-2 border border-gray-300 rounded-lg outline-none">
+                        <div class="flex flex-col justify-end">
+                            <button onclick="autoSetSemester()" class="w-full h-[46px] bg-orange-200 hover:bg-orange-300 text-orange-800 rounded-xl font-bold transition text-sm border border-orange-300">
+                                自動建議日期
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 2. 課務與請假實況 -->
-                <div class="card p-6 border-l-4 border-indigo-400">
-                    <h3 class="font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
-                        <span class="bg-indigo-100 text-indigo-600 w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">2</span>
-                        課務與請假實況
+                <!-- 1. 職務與規模設定 -->
+                <div class="card p-6 border-l-4 border-blue-400">
+                    <h3 class="font-bold text-gray-800 mb-6 border-b pb-4 flex items-center text-lg">
+                        <span class="bg-blue-100 text-blue-600 w-7 h-7 rounded-full flex items-center justify-center text-sm mr-2">1</span>
+                        職務與法規節數設定
                     </h3>
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-gray-600 text-xs font-bold mb-1">年份</label>
-                            <select id="yearSelect" class="w-full p-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 outline-none"></select>
+                    
+                    <div class="space-y-1">
+                        <!-- 學校規模 -->
+                        <div class="settings-row" id="scaleRow">
+                            <div class="flex flex-col">
+                                <span class="text-gray-700 font-bold text-sm">全校總班級數</span>
+                                <span id="scaleLabel" class="text-[10px] text-blue-500 italic">正在判定法規區間...</span>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="number" id="classCount" value="25" min="1" oninput="handleClassCountChange()" class="w-32 p-2 border border-blue-200 bg-blue-50/30 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 text-center font-bold text-blue-800">
+                                <span class="ml-2 text-sm text-gray-500 font-bold">班</span>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-gray-600 text-xs font-bold mb-1">月份</label>
-                            <select id="monthSelect" onchange="autoUpdateTotalHours()" class="w-full p-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 outline-none">
-                                <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
-                                <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
-                                <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
-                                <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+
+                        <!-- 教師學科 -->
+                        <div id="teacherSubjectRow" class="settings-row">
+                            <span class="text-gray-700 font-bold text-sm">教師基本身分 (學科)</span>
+                            <select id="subject" onchange="updateWeekCalculations()" class="w-full sm:w-64 p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 text-sm">
+                                <option value="16">一般教師 (基本 16 節)</option>
+                                <option value="14">國文教師 (基本 14 節)</option>
                             </select>
+                        </div>
+
+                        <!-- 行政職務 -->
+                        <div class="settings-row">
+                            <span class="text-gray-700 font-bold text-sm">行政職務類型</span>
+                            <select id="adminType" onchange="handleAdminTypeChange()" class="w-full sm:w-64 p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 text-sm">
+                                <option value="none">無行政職務</option>
+                                <option value="boss">副校長 / 秘書 / 一級單位主任</option>
+                                <option value="subBoss">進修部主任 / 分部主任</option>
+                                <option value="groupCore">組長 (教學/註冊/訓育/生輔/衛生)</option>
+                                <option value="groupOther">其餘二級單位組長</option>
+                                <option value="groupSub">進修部組長</option>
+                                <option value="deptHead">各科、學程主任</option>
+                                <option value="assistant">協助行政教師 (彈性減授)</option>
+                            </select>
+                        </div>
+
+                        <!-- 協助行政教師專用：自定義減授節數 -->
+                        <div id="assistantConfig" class="hidden bg-amber-50 p-4 rounded-xl mb-2 border border-amber-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex flex-col">
+                                    <span class="text-amber-800 font-bold text-sm">協助行政減授節數</span>
+                                    <span class="text-[10px] text-amber-600">依校內行政會議決定</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="number" id="customReduction" value="2" min="0" oninput="updateWeekCalculations()" class="w-24 p-2 border border-amber-300 rounded-lg text-center font-bold text-amber-800">
+                                    <span class="ml-2 text-sm text-amber-600 font-bold">節</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 各科主任專用設定 -->
+                        <div id="deptHeadConfig" class="hidden bg-blue-50 p-4 rounded-xl mb-2 border border-blue-200">
+                            <div class="flex items-center justify-between">
+                                <span class="text-blue-800 font-bold text-sm">該科(學程)班級數</span>
+                                <div class="flex items-center">
+                                    <input type="number" id="deptClassCount" value="3" min="1" oninput="updateWeekCalculations()" class="w-24 p-2 border border-blue-300 rounded-lg text-center font-bold">
+                                    <span class="ml-2 text-sm text-blue-600">班</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 基本授課節數顯示 (自動連動) -->
+                        <div class="settings-row">
+                            <span class="text-gray-700 font-bold text-sm">法定/減授後基本節數</span>
+                            <div class="flex items-center">
+                                <span id="legalBaseDisplay" class="text-xl font-black text-blue-600 mr-1">--</span>
+                                <span class="text-sm text-gray-400">節</span>
+                            </div>
+                        </div>
+
+                        <!-- 班導師 -->
+                        <div class="settings-row">
+                            <span class="text-gray-700 font-bold text-sm">兼任班導師 (額外再減 4 節)</span>
+                            <input type="checkbox" id="isTutor" onchange="updateWeekCalculations()" class="w-5 h-5 text-blue-600 rounded cursor-pointer">
+                        </div>
+
+                        <!-- 固定超鐘點 -->
+                        <div class="settings-row mt-2 pt-4 border-t-2 border-dashed">
+                            <span class="text-blue-700 font-bold text-sm">每週固定超鐘點</span>
+                            <div class="flex items-center">
+                                <input type="number" id="weeklyExtra" value="0" min="0" oninput="updateWeekCalculations()" class="w-24 p-2 border border-blue-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-400 text-center font-bold text-blue-700">
+                                <span class="ml-2 text-sm text-gray-500 font-bold">節 / 週</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 週次勾選與日期對照 -->
+                <div class="card p-6 border-l-4 border-indigo-500">
+                    <div class="flex justify-between items-center border-b pb-3 mb-4">
+                        <h3 class="font-bold text-gray-800 flex items-center text-lg">
+                            <span class="bg-indigo-100 text-indigo-600 w-7 h-7 rounded-full flex items-center justify-center text-sm mr-2">2</span>
+                            本月教學週次與日期對照
+                        </h3>
+                        <div class="text-right">
+                            <select id="monthSelector" onchange="renderWeekCheckboxes()" class="bg-gray-100 border border-gray-200 rounded-xl text-sm font-bold p-2.5 text-gray-700 outline-none focus:ring-2 focus:ring-indigo-400"></select>
                         </div>
                     </div>
 
+                    <div id="weekContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6"></div>
+
                     <div class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- 本月總授課 (包含超鐘點) -->
+                        <div class="bg-blue-600 p-5 rounded-2xl shadow-lg text-white">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block font-bold text-lg">本月實際授課總節數 <span class="text-xs font-normal opacity-80">(原班課表)</span></label>
+                                <span id="weekCountBadge" class="bg-blue-400 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">已選 0 週</span>
+                            </div>
+                            <input type="number" id="totalHours" value="0" class="w-full p-3 bg-white border-none rounded-xl outline-none font-black text-blue-800 text-2xl shadow-inner">
+                        </div>
+
+                        <!-- 請假與代課明細 -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="bg-gray-50 p-3 rounded-xl border border-gray-200">
-                                <label class="block text-gray-600 text-xs font-bold mb-1">本月應授基本總節數</label>
-                                <input type="number" id="monthBaseTotal" readonly class="w-full p-2 border-none bg-transparent outline-none font-bold text-gray-500">
-                                <p class="text-[9px] text-gray-400 italic">基本門檻 × 當月週數</p>
+                                <label class="block text-gray-600 text-xs font-bold mb-1">請假記錄 (自行支應)</label>
+                                <input type="number" id="selfPayHours" value="0" min="0" class="w-full p-2 border border-gray-200 rounded-lg outline-none font-bold text-gray-500">
+                                <p class="text-[9px] text-gray-400 mt-1">事、病假。學校照發，請自行轉交</p>
                             </div>
-                            <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
-                                <label class="block text-blue-700 text-xs font-bold mb-1">本月固定超鐘點總計</label>
-                                <input type="number" id="monthExtraTotal" readonly class="w-full p-2 border-none bg-transparent outline-none font-bold text-blue-700">
-                                <p class="text-[9px] text-blue-400 italic">每週超點 × 當月週數</p>
-                            </div>
-                        </div>
-
-                        <div class="bg-blue-600 p-4 rounded-xl shadow-md">
-                            <label class="block text-white font-bold mb-1">本月課表總節數 (自動加總結果)</label>
-                            <input type="number" id="totalHours" value="72" class="w-full p-2.5 bg-white border-none rounded-lg outline-none font-black text-blue-800 text-xl">
-                            <p id="monthHint" class="text-[10px] text-blue-100 mt-1 italic">系統已根據月份預估教學週數，可自行修正</p>
-                        </div>
-
-                        <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                            <label class="block text-indigo-800 font-bold mb-1">本月「支援他人代課」總節數</label>
-                            <input type="number" id="supportPayHours" value="0" min="0" class="w-full p-2.5 border border-indigo-200 rounded-lg outline-none font-bold text-indigo-700">
-                            <p class="text-[10px] text-indigo-600 mt-1 italic">指幫請假同事代課（領取 $505/節）</p>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
                             <div class="bg-red-50 p-3 rounded-xl border border-red-100">
-                                <label class="block text-red-700 text-xs font-bold mb-1">個人請假自付 (節)</label>
-                                <input type="number" id="selfPayHours" value="0" class="w-full p-2 border border-red-100 rounded-lg outline-none text-sm">
+                                <label class="block text-red-700 text-xs font-bold mb-1">請假扣除 (學校支應)</label>
+                                <input type="number" id="schoolPayHours" value="0" min="0" class="w-full p-2 border border-red-200 rounded-lg outline-none font-bold text-red-600">
+                                <p class="text-[9px] text-red-400 mt-1">公假、婚娩、喪假。清冊直接扣除</p>
                             </div>
                             <div class="bg-green-50 p-3 rounded-xl border border-green-100">
-                                <label class="block text-green-700 text-xs font-bold mb-1">學校支應費用 (節)</label>
-                                <input type="number" id="schoolPayHours" value="0" class="w-full p-2 border border-green-100 rounded-lg outline-none text-sm">
+                                <label class="block text-green-700 text-xs font-bold mb-1">協助他人代課 (所得)</label>
+                                <input type="number" id="supportPayHours" value="0" min="0" class="w-full p-2 border border-green-200 rounded-lg outline-none font-bold text-green-600">
+                                <p class="text-[9px] text-green-400 mt-1">額外協助他人的課，清冊撥款</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <button onclick="calculate()" class="btn-confirm w-full py-5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl rounded-2xl shadow-xl flex items-center justify-center space-x-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                    <span>立即核算本月所得</span>
+                <button onclick="calculate()" class="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl rounded-2xl shadow-xl transition active:scale-95">
+                    生成本月結算報表
                 </button>
-                
-                <div class="h-10 lg:hidden"></div>
             </div>
 
-            <!-- Right: Result Display (Sticky) -->
+            <!-- Right: Result -->
             <div class="lg:col-span-2 lg:sticky lg:top-8">
-                <div class="card p-6 border-t-8 border-blue-600 shadow-2xl">
-                    <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center justify-center">
-                        <span class="mr-2 text-2xl">💰</span> 試算結果
-                    </h2>
+                <div class="card p-6 border-t-8 border-blue-600 shadow-2xl bg-slate-50">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6 text-center">📊 結算結果</h2>
                     
-                    <div id="resultPlaceholder" class="text-center py-20 text-gray-400">
-                        <div class="text-4xl mb-3">📋</div>
-                        <p>請輸入資料後點擊計算</p>
+                    <div id="resultPlaceholder" class="text-center py-24 text-gray-300">
+                        <p class="text-xs">請完成設定並點擊計算</p>
                     </div>
 
                     <div id="resultContent" class="space-y-4 hidden">
-                        <div class="text-center bg-gray-100 py-1.5 rounded-full text-xs font-bold text-gray-500 mb-4">
-                           <span id="resYearDisplay"></span>年 <span id="resMonthDisplay"></span>月 結算
-                        </div>
-
-                        <div class="space-y-3 text-sm border-b pb-5">
+                        <div class="space-y-3 text-sm border-b border-gray-200 pb-5">
                             <div class="flex justify-between items-center">
-                                <span class="text-blue-600 flex items-center italic">本月超鐘點(兼課)</span>
-                                <span id="resExtraHours" class="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">0 節</span>
+                                <span class="text-gray-500 font-medium">基本應授總節數</span>
+                                <span id="resBaseTotal" class="font-bold text-gray-700">0 節</span>
                             </div>
                             <div class="flex justify-between items-center">
-                                <span class="text-indigo-600 flex items-center italic">本月代課(支援)</span>
-                                <span id="resSupportHours" class="font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">0 節</span>
+                                <span class="text-blue-500 font-medium">本月超鐘點數</span>
+                                <span id="resExtraHours" class="font-bold text-blue-600">0 節</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-green-600 font-medium">協助代課節數</span>
+                                <span id="resSupportHours" class="font-bold text-green-600">+0 節</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-red-500 font-medium">請假扣除 (學校支應)</span>
+                                <span id="resSchoolHours" class="font-bold text-red-600">-0 節</span>
+                            </div>
+                            
+                            <!-- 自行支應改為灰色顯示 -->
+                            <div class="flex justify-between items-center pt-2 border-t border-dashed border-gray-300">
+                                <span class="text-gray-400 font-medium italic">請假記錄 (自行支應)</span>
+                                <div class="text-right">
+                                    <span id="resSelfHours" class="font-bold text-gray-400">0 節</span>
+                                    <span class="block text-[9px] text-gray-400">(不列入清冊扣款)</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center border-t-2 border-double pt-2">
+                                <span class="text-gray-700 font-bold">結算合計節數</span>
+                                <span id="resFinalTotalHours" class="font-black text-blue-800">0 節</span>
                             </div>
                         </div>
 
-                        <div class="space-y-3 pt-2">
-                            <div class="flex justify-between items-center text-sm">
-                                <span class="text-gray-500">兼課總收入</span>
-                                <span id="resMonthlyMoney" class="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">$0</span>
-                            </div>
-                            <div class="flex justify-between items-center text-sm">
-                                <span class="text-indigo-600 font-medium">代課總所得 (+)</span>
-                                <span id="resSupportMoney" class="font-bold text-indigo-700">+$0</span>
-                            </div>
-                            <div class="flex justify-between items-center text-sm">
-                                <span class="text-red-500 font-medium">個人請假自付 (-)</span>
-                                <span id="resSelfCost" class="font-bold text-red-600">-$0</span>
-                            </div>
-                            <div class="flex justify-between items-center text-sm">
-                                <span class="text-green-600 font-medium">學校支應費用 (+)</span>
-                                <span id="resSchoolCost" class="font-bold text-green-700">+$0</span>
-                            </div>
-                        </div>
-
-                        <div class="pt-6">
-                            <div class="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-2xl border-2 border-amber-200 shadow-inner text-center">
-                                <p class="text-xs text-amber-700 font-black mb-1 uppercase tracking-widest">本月最終預計實領所得</p>
-                                <p id="resTotalIncome" class="text-5xl font-black text-amber-600 drop-shadow-sm">$0</p>
-                                <p class="text-[10px] text-amber-500 mt-3 italic leading-relaxed">此金額僅為兼代課結算，不含導師費及行政加給。</p>
-                            </div>
-                        </div>
-
-                        <div id="limitAlert" class="hidden p-4 bg-red-100 border-l-4 border-red-500 text-red-700 text-xs rounded-r-lg font-bold">
-                            ⚠️ 警示：平均週兼代課節數已超過 9 節上限！
+                        <div class="bg-white p-6 rounded-2xl border-2 border-blue-200 shadow-md text-center">
+                            <p class="text-[10px] text-blue-500 font-black mb-1 tracking-widest uppercase">本月清冊實領總額</p>
+                            <p id="resTotalIncome" class="text-4xl font-black text-blue-600">$0</p>
+                            <p class="text-[10px] text-gray-400 mt-2">（單價 $505 × 結算節數）</p>
                         </div>
                     </div>
                 </div>
@@ -231,136 +266,169 @@
     <script>
         const RATE = 505;
 
-        window.onload = function() {
-            const yearSelect = document.getElementById('yearSelect');
-            const currentYear = new Date().getFullYear();
-            for (let i = 0; i < 5; i++) {
-                let opt = document.createElement('option');
-                opt.value = currentYear + i; opt.innerText = (currentYear + i) + '年';
-                yearSelect.appendChild(opt);
-            }
-            document.getElementById('monthSelect').value = new Date().getMonth() + 1;
-            autoUpdateTotalHours();
+        const LEGAL_DATA = {
+            boss:       [7, 5, 3, 1, 1, 0, 0, 0],
+            subBoss:    [5, 3, 1, 0, 0, 0, 0, 0],
+            groupCore:  [8, 8, 6, 5, 3, 1, 0, 0],
+            groupOther: [9, 9, 7, 7, 5, 3, 1, 0],
+            groupSub:   [6, 6, 4, 3, 1, 0, 0, 0]
         };
 
-        function handleAdminChange() {
-            toggleCustomInput();
-            autoUpdateTotalHours();
+        window.onload = function() {
+            autoSetSemester();
+            initMonthSelector();
+            handleClassCountChange();
+        };
+
+        function handleClassCountChange() {
+            const count = parseInt(document.getElementById('classCount').value) || 0;
+            const label = document.getElementById('scaleLabel');
+            let idx = 0;
+            if (count <= 9) { label.innerText = "9 班以下"; idx = 0; }
+            else if (count <= 18) { label.innerText = "10 - 18 班"; idx = 1; }
+            else if (count <= 24) { label.innerText = "19 - 24 班"; idx = 2; }
+            else if (count <= 30) { label.innerText = "25 - 30 班"; idx = 3; }
+            else if (count <= 36) { label.innerText = "31 - 36 班"; idx = 4; }
+            else if (count <= 48) { label.innerText = "37 - 48 班"; idx = 5; }
+            else if (count <= 60) { label.innerText = "49 - 60 班"; idx = 6; }
+            else { label.innerText = "61 班以上"; idx = 7; }
+            window.currentScaleIdx = idx;
+            updateWeekCalculations();
         }
 
-        function toggleCustomInput() {
-            const select = document.getElementById('adminReduction');
-            const box = document.getElementById('customReductionBox');
-            if (select.value === 'custom') {
-                box.classList.remove('hidden');
-            } else {
-                box.classList.add('hidden');
+        function handleAdminTypeChange() {
+            const type = document.getElementById('adminType').value;
+            const deptConfig = document.getElementById('deptHeadConfig');
+            const assistantConfig = document.getElementById('assistantConfig');
+            const scaleRow = document.getElementById('scaleRow');
+            deptConfig.classList.toggle('hidden', type !== 'deptHead');
+            assistantConfig.classList.toggle('hidden', type !== 'assistant');
+            scaleRow.style.opacity = (type === 'none' || type === 'assistant') ? "0.5" : "1";
+            updateWeekCalculations();
+        }
+
+        function getLegalBase() {
+            const type = document.getElementById('adminType').value;
+            const teacherBase = parseInt(document.getElementById('subject').value);
+            const idx = window.currentScaleIdx || 0;
+            if (type === 'none') return teacherBase;
+            if (type === 'assistant') {
+                const reduction = parseInt(document.getElementById('customReduction').value) || 0;
+                return Math.max(0, teacherBase - reduction);
             }
+            if (type === 'deptHead') {
+                const deptCount = parseInt(document.getElementById('deptClassCount').value) || 0;
+                if (deptCount <= 3) return 8;
+                if (deptCount <= 6) return 7;
+                return 6;
+            }
+            return LEGAL_DATA[type][idx];
         }
 
-        function autoUpdateTotalHours() {
-            const month = parseInt(document.getElementById('monthSelect').value);
-            const subBase = parseInt(document.getElementById('subject').value);
-            const weeklyExtra = parseInt(document.getElementById('weeklyExtra').value) || 0;
+        function updateWeekCalculations() {
+            const base = getLegalBase();
             const isTutor = document.getElementById('isTutor').checked;
-            const adminSelect = document.getElementById('adminReduction').value;
-            
-            let adminRed = 0;
-            if (adminSelect === 'custom') {
-                adminRed = parseInt(document.getElementById('customRedValue').value) || 0;
-            } else {
-                adminRed = parseInt(adminSelect);
+            const weeklyExtra = parseInt(document.getElementById('weeklyExtra').value) || 0;
+            let finalBase = isTutor ? Math.max(0, base - 4) : base;
+            document.getElementById('legalBaseDisplay').innerText = finalBase;
+            let checkedWeeks = 0;
+            document.querySelectorAll('.week-checkbox').forEach(cb => { if (cb.checked) checkedWeeks++; });
+            document.getElementById('totalHours').value = (finalBase + weeklyExtra) * checkedWeeks;
+            document.getElementById('weekCountBadge').innerText = `已選 ${checkedWeeks} 週`;
+        }
+
+        function autoSetSemester() {
+            const today = new Date();
+            const month = today.getMonth() + 1;
+            const year = today.getFullYear();
+            let target = (month >= 8 || month === 1) ? `${(month === 1 ? year - 1 : year)}-08-31` : `${year}-02-08`;
+            document.getElementById('semesterStartDate').value = target;
+            renderWeekCheckboxes();
+        }
+
+        function initMonthSelector() {
+            const s = document.getElementById('monthSelector');
+            const now = new Date();
+            for (let i = -3; i <= 6; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                const opt = document.createElement('option');
+                opt.value = `${d.getFullYear()}-${d.getMonth() + 1}`;
+                opt.innerText = `${d.getFullYear()}年 ${d.getMonth() + 1}月`;
+                if (i === 0) opt.selected = true;
+                s.appendChild(opt);
             }
+        }
 
-            let totalReduction = adminRed + (isTutor ? 4 : 0);
-            const weekFinalBase = Math.max(0, subBase - totalReduction);
-            
-            // 預估本月應授課週數
-            let estimatedWeeks = 4;
-            let hint = "標準月份，以 4 週計算預估值。";
-
-            if (month === 2 || month === 8) {
-                estimatedWeeks = 2;
-                hint = `${month}月受寒暑假影響，預估僅有約 2 週課程量。`;
-            } else if (month === 1 || month === 7) {
-                estimatedWeeks = 3;
-                hint = `${month}月受期末或暑期影響，預估約為 3 週課程量。`;
-            } else if (month === 5 || month === 10 || month === 12) {
-                estimatedWeeks = 4.5;
-                hint = `${month}月教學週數較長，預估為 4.5 週。`;
+        function renderWeekCheckboxes() {
+            const startStr = document.getElementById('semesterStartDate').value;
+            if (!startStr) return;
+            const semSun = new Date(startStr);
+            const [y, m] = document.getElementById('monthSelector').value.split('-').map(Number);
+            const container = document.getElementById('weekContainer');
+            container.innerHTML = '';
+            const first = new Date(y, m - 1, 1);
+            const last = new Date(y, m, 0);
+            let curr = new Date(first);
+            curr.setDate(curr.getDate() - curr.getDay());
+            while (curr <= last) {
+                const sun = new Date(curr);
+                const sat = new Date(curr);
+                sat.setDate(sun.getDate() + 6);
+                if (sat >= first && sun <= last) {
+                    const diff = Math.round((sun - semSun) / 86400000);
+                    const weekNum = Math.ceil((diff + 1) / 7);
+                    if (weekNum > 0) {
+                        const div = document.createElement('div');
+                        div.innerHTML = `
+                            <input type="checkbox" id="w${weekNum}" checked class="hidden week-checkbox" onchange="updateWeekCalculations()">
+                            <label for="w${weekNum}" class="flex flex-col items-center justify-center p-3 border-2 border-gray-100 rounded-xl cursor-pointer hover:bg-blue-50 transition-all bg-white shadow-sm h-full text-center">
+                                <span class="text-lg font-black text-gray-800">第 ${weekNum} 週</span>
+                                <div class="text-[10px] text-gray-400">${sun.getMonth()+1}/${sun.getDate()} - ${sat.getMonth()+1}/${sat.getDate()}</div>
+                            </label>
+                        `;
+                        container.appendChild(div);
+                    }
+                }
+                curr.setDate(curr.getDate() + 7);
             }
-
-            // 更新顯示各項分開的總和
-            const monthBaseVal = Math.round(weekFinalBase * estimatedWeeks);
-            const monthExtraVal = Math.round(weeklyExtra * estimatedWeeks);
-            
-            document.getElementById('monthBaseTotal').value = monthBaseVal;
-            document.getElementById('monthExtraTotal').value = monthExtraVal;
-            
-            // 總課表節數預設為兩者加總
-            document.getElementById('totalHours').value = monthBaseVal + monthExtraVal;
-            document.getElementById('monthHint').innerText = hint + " (可手動修正)";
+            updateWeekCalculations();
         }
 
         function calculate() {
-            const subBase = parseInt(document.getElementById('subject').value);
-            const isTutor = document.getElementById('isTutor').checked;
-            
-            const adminSelect = document.getElementById('adminReduction').value;
-            let adminRed = 0;
-            if (adminSelect === 'custom') {
-                adminRed = parseInt(document.getElementById('customRedValue').value) || 0;
-            } else {
-                adminRed = parseInt(adminSelect);
-            }
-
-            const monthTotal = parseInt(document.getElementById('totalHours').value) || 0;
+            const finalBasePerWeek = parseInt(document.getElementById('legalBaseDisplay').innerText);
+            const totalHoursInput = parseInt(document.getElementById('totalHours').value) || 0;
             const supportHours = parseInt(document.getElementById('supportPayHours').value) || 0;
-            const selfPay = parseInt(document.getElementById('selfPayHours').value) || 0;
-            const schoolPay = parseInt(document.getElementById('schoolPayHours').value) || 0;
-            const month = parseInt(document.getElementById('monthSelect').value);
-
-            let totalReduction = adminRed + (isTutor ? 4 : 0);
-            const weekFinalBase = Math.max(0, subBase - totalReduction);
+            const selfPayHours = parseInt(document.getElementById('selfPayHours').value) || 0;
+            const schoolPayHours = parseInt(document.getElementById('schoolPayHours').value) || 0;
             
-            let weekCountThreshold = 4;
-            if (month === 2 || month === 8) weekCountThreshold = 2;
-            else if (month === 1 || month === 7) weekCountThreshold = 3;
-            else if (month === 5 || month === 10 || month === 12) weekCountThreshold = 4.5;
-
-            const monthBaseThreshold = weekFinalBase * weekCountThreshold;
-
-            const extraHours = Math.max(0, monthTotal - monthBaseThreshold);
-            const monthlyExtraIncome = extraHours * RATE;
-            const supportIncome = supportHours * RATE;
-            const selfPayCost = selfPay * RATE;
-            const schoolPayBonus = schoolPay * RATE;
-
-            const totalIncome = monthlyExtraIncome + supportIncome - selfPayCost + schoolPayBonus;
+            let checkedWeeks = 0;
+            document.querySelectorAll('.week-checkbox').forEach(cb => { if (cb.checked) checkedWeeks++; });
+            
+            // 本月基本門檻 (基礎應授總和)
+            const monthBaseRequired = finalBasePerWeek * checkedWeeks;
+            
+            // 超鐘點 = 本月實際授課節數 - 本月基本門檻
+            const extraHours = Math.max(0, totalHoursInput - monthBaseRequired);
+            
+            /**
+             * 實務邏輯修正：
+             * 1. 自行支應 (如事、病假)：學校清冊不扣款，教師私下給付。因此不從 finalNetHours 扣除。
+             * 2. 學校支應 (如公、婚喪假)：學校清冊直接扣款轉給代課者。因此必須從 finalNetHours 扣除。
+             */
+            const finalNetHours = extraHours + supportHours - schoolPayHours;
 
             document.getElementById('resultPlaceholder').classList.add('hidden');
             document.getElementById('resultContent').classList.remove('hidden');
-            document.getElementById('resYearDisplay').innerText = document.getElementById('yearSelect').value;
-            document.getElementById('resMonthDisplay').innerText = month;
-            document.getElementById('resExtraHours').innerText = Math.round(extraHours * 10) / 10 + ' 節';
-            document.getElementById('resSupportHours').innerText = supportHours + ' 節';
-            document.getElementById('resMonthlyMoney').innerText = '$' + Math.round(monthlyExtraIncome).toLocaleString();
-            document.getElementById('resSupportMoney').innerText = '+$' + Math.round(supportIncome).toLocaleString();
-            document.getElementById('resSelfCost').innerText = '-$' + Math.round(selfPayCost).toLocaleString();
-            document.getElementById('resSchoolCost').innerText = '+$' + Math.round(schoolPayBonus).toLocaleString();
-            document.getElementById('resTotalIncome').innerText = '$' + Math.round(totalIncome).toLocaleString();
-
-            const avgWeeklyLoad = (extraHours + supportHours) / weekCountThreshold;
-            const alertBox = document.getElementById('limitAlert');
-            if (avgWeeklyLoad > 9) {
-                alertBox.classList.remove('hidden');
-            } else {
-                alertBox.classList.add('hidden');
-            }
-
-            if (window.innerWidth < 1024) {
-                document.getElementById('resultContent').scrollIntoView({ behavior: 'smooth' });
-            }
+            
+            document.getElementById('resBaseTotal').innerText = `${monthBaseRequired} 節`;
+            document.getElementById('resExtraHours').innerText = `${extraHours} 節`;
+            document.getElementById('resSupportHours').innerText = `+${supportHours} 節`;
+            document.getElementById('resSchoolHours').innerText = `-${schoolPayHours} 節`;
+            document.getElementById('resSelfHours').innerText = `${selfPayHours} 節`;
+            document.getElementById('resFinalTotalHours').innerText = `${finalNetHours} 節`;
+            
+            const finalIncome = finalNetHours * RATE;
+            document.getElementById('resTotalIncome').innerText = '$' + Math.round(finalIncome).toLocaleString();
         }
     </script>
 </body>
